@@ -124,5 +124,3 @@ def create_list():
   else:
     return jsonify(body)
 
-if __name__ == '__main__':
-  app.run(debug=True)
