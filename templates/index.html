@@ -1,0 +1,181 @@
+<html>
+  <head>
+    <title>Todo App</title>
+    <style>
+      #error {
+        display: none;
+      }
+      ul{
+        list-style: none;
+        margin: 0px;
+        padding: 0px;
+        width: 300px;
+      }
+      .li-button{
+        -webkit-appearance: none;
+        border: none;
+        outline: none;
+        color: red;
+        float: right;
+        cursor: pointer;
+      }
+      .lists-wrapper , .todos-wrapper {
+        display: inline-block;
+        vertical-align: top;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="lists-wrapper">
+      <h3>
+        Task Categories
+      </h3>
+      <form id="list-cat-form" method="POST" action="/todos/create-list">
+        <input type="text" name="list-cat-name" placeholder="enter category"/>
+        <input type="submit" id="list-cat-form-submit" value="Create" />
+      </form>
+      <ul id="lists">
+        {% for list in lists %}
+        <a href="/lists/{{list.id}}">
+          <li>{{list.name}}</li>
+        </a>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="todos-wrapper">
+      <h4>{{active_list.name}}</h4>
+      <div id="error" class="hidden">Something went wrong!</div>
+      <form id="form" method="post" action="/todos/create">
+        <input type="text" id="description" name="description" placeholder="Enter Task" required/>
+        <input type="text" id="list_name" name="list_name" placeholder="list_name" required/>
+        <input type="submit" value="Create" />
+      </form>
+      <ul id="todos">
+        {% for todo in todos %}
+        <li class="list-items" data-id="{{ todo.id }}">
+          <input class="check-completed" data-id="{{ todo.id }}" type="checkbox" {% if todo.completed %} checked {% endif %} />  {{ todo.description }}
+          <button class='li-button'>&cross;</button>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    <script>
+      const delete_buttons = document.querySelectorAll('.li-button');
+      for (let i = 0; i < delete_buttons.length; i++){
+        const delete_button = delete_buttons[i];
+          delete_button.onclick = function(e) {
+          const todo_id = e.target.parentElement.querySelector('input').getAttribute('data-id');
+          fetch('/todos/delete-task' , {
+            method: 'POST' ,
+            body: JSON.stringify({
+              'id': todo_id
+            }),
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          })
+          .then(response => response.json())
+          .then(jsonResponse => {
+            console.log('response', jsonResponse);
+            const list_items = document.querySelectorAll('.list-items')
+            for(let i=0;i<list_items.length;i++) {
+              if (list_items[i].getAttribute('data-id')==jsonResponse['id']) {
+                list_items[i].remove();
+              }
+            }
+            document.getElementById('error').className = 'hidden';
+          })
+          .catch(function() {
+            document.getElementById('error').className = '';
+          })
+        }
+      }
+
+      const checkboxes = document.querySelectorAll('.check-completed');
+      for (let i = 0; i < checkboxes.length; i++) {
+        const checkbox = checkboxes[i];
+        checkbox.onchange = function(e) {
+          const newCompleted = e.target.checked;
+          const todoId = e.target.dataset['id'];
+          fetch('/todos/' + todoId + '/set-completed', {
+            method: 'POST',
+            body: JSON.stringify({
+              'completed': newCompleted
+            }),
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          })
+          .then(function() {
+            document.getElementById('error').className = 'hidden';
+          })
+          .catch(function() {
+            document.getElementById('error').className = '';
+          })
+        }
+      }
+      document.getElementById('list-cat-form').onsubmit =function(e) {
+        e.preventDefault();
+        const list_name = document.getElementById('list-cat-name').value;
+        fetch('/todos/create-list', {
+          method: 'POST',
+          body: JSON.stringify({
+            'name':list_name
+          }),
+          headers:{
+            'Content-Type':'application/json'
+          }
+          .then(response=>response.json())
+          .then(jsonResponse=>{
+            const newName = document.createElement('li');
+            newName.innerHTML = jsonResponse['name'];
+            document.getElementById('lists').appendChild(newName);
+            document.getElementById('error').className = 'hidden';
+          })
+          .catch(function(){
+            document.getElementById('error').className = '';
+          })
+        })
+      }
+
+
+      const descInput = document.getElementById('description');
+      const nameInput = document.getElementById('list_name');
+      document.getElementById('form').onsubmit = function(e) {
+        e.preventDefault();
+        const desc = descInput.value;
+        const name = nameInput.value;
+        console.log('start');
+        descInput.value = '';
+        fetch('/todos/create', {
+          method: 'POST',
+          body: JSON.stringify({
+            'description': desc,
+            'name':name,
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        })
+        .then(response => response.json())
+        .then(jsonResponse => {
+          console.log('response', jsonResponse);
+          box = document.createElement('input');
+          li = document.createElement('li');
+          li.innerText = desc;
+          document.getElementById('todos').appendChild(box);
+          box.setAttribute("type" , "checkbox");
+          document.getElementById('todos').appendChild(li);
+          const button = document.createElement('button');
+          button.innerHTML = '&cross;'
+
+
+          document.getElementById('error').className = 'hidden';
+        })
+        .catch(function() {
+          document.getElementById('error').className = '';
+        })
+      }
+    </script>
+  </body>
+</html>
