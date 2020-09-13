@@ -2,6 +2,13 @@
   <head>
     <title>Todo App</title>
     <style>
+      body {
+        background-image: url('https://wallpaperstream.com/wallpapers/full/minimal-hd/Alarm-Clock-Minimal-Background-HD-Wallpaper.jpg');
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        background-size: cover;
+      }
+
       #error {
         display: none;
       }
@@ -24,47 +31,75 @@
         vertical-align: top;
       }
     </style>
+    <!-- CSS only -->
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+
+<!-- JS, Popper.js, and jQuery -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
   </head>
   <body>
-    <div class="lists-wrapper">
-      <h3>
-        Task Categories
-      </h3>
-      <form id="list-cat-form" method="POST" action="/todos/create-list">
-        <input type="text" name="list-cat-name" placeholder="enter category"/>
-        <input type="submit" id="list-cat-form-submit" value="Create" />
-      </form>
-      <ul id="lists">
-        {% for list in lists %}
-        <a href="/lists/{{list.id}}">
-          <li>{{list.name}}</li>
-        </a>
-        {% endfor %}
-      </ul>
+    <div class="container">
+      <h1 align="center" style="color:darkgreen;" >Todo App</h1>
+    </div>
+    <div style="margin-left:15%;" class="lists-wrapper">
+      <div class="container">
+        <h3 style="color: blueviolet;" >
+          Task Categories
+        </h3>
+        <form id="list-cat-form" method="POST" action="/todos/create-list">
+          <input type="text" id="list-cat-name-id" name="list-cat-name" placeholder="enter category"/>
+          <input type="submit" id="list-cat-form-submit" value="Create" />
+        </form>
+        <ul id="lists">
+          {% for list in lists %}
+          <div class="row">
+            <div class="col-8" >
+              <a href="/lists/{{list.id}}">
+                <li data-list="{{list.id}}" >{{list.name}}</li>
+              </a>
+            </div>
+            <div class="col-2">
+              <button class='li-button-1' style="margin-left:20px">&cross;</button>
+            </div>
+          </div>
+          {% endfor %}
+        </ul>
+    </div>
     </div>
     <div class="todos-wrapper">
-      <h4>{{active_list.name}}</h4>
+      <h4 style="color: darkslateblue;" >{{active_list.name}}</h4>
       <div id="error" class="hidden">Something went wrong!</div>
       <form id="form" method="post" action="/todos/create">
         <input type="text" id="description" name="description" placeholder="Enter Task" required/>
         <input type="text" id="list_name" name="list_name" placeholder="list_name" required/>
         <input type="submit" value="Create" />
       </form>
-      <ul id="todos">
-        {% for todo in todos %}
-        <li class="list-items" data-id="{{ todo.id }}">
-          <input class="check-completed" data-id="{{ todo.id }}" type="checkbox" {% if todo.completed %} checked {% endif %} />  {{ todo.description }}
-          <button class='li-button'>&cross;</button>
-        </li>
-        {% endfor %}
-      </ul>
+      <div class="container">
+        <ul id="todos">
+          {% for todo in todos %}
+          <li class="list-items" data-id="{{ todo.id }}">
+            <div class="row">
+              <div class="col-8">
+                <input class="check-completed" data-id="{{ todo.id }}" type="checkbox" {% if todo.completed %} checked {% endif %} />  {{ todo.description }}
+              </div>
+              <div class="col-2">
+                <button class='li-button'>&cross;</button>
+              </div>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
     </div>
     <script>
       const delete_buttons = document.querySelectorAll('.li-button');
       for (let i = 0; i < delete_buttons.length; i++){
         const delete_button = delete_buttons[i];
           delete_button.onclick = function(e) {
-          const todo_id = e.target.parentElement.querySelector('input').getAttribute('data-id');
+          const todo_id = e.target.parentElement.parentElement.querySelector('input').getAttribute('data-id');
+          //const todo_id = e.target.parentElement.querySelector('input').getAttribute('data-id');
           fetch('/todos/delete-task' , {
             method: 'POST' ,
             body: JSON.stringify({
@@ -87,6 +122,28 @@
           })
           .catch(function() {
             document.getElementById('error').className = '';
+          })
+        }
+      }
+
+      const delete_lists = document.querySelectorAll('.li-button-1');
+      for (let i = 0; i < delete_lists.length; i++){
+        const delete_list = delete_lists[i];
+        delete_list.onclick = function(e){
+          const todo_list_id = e.target.parentElement.parentElement.querySelector('li').getAttribute('data-list');
+          //console.log(todo_list_id);
+          fetch('/todos/delete-list' , {
+            method: 'POST' ,
+            body: JSON.stringify({
+              'id': todo_list_id
+            }),
+            headers: {
+              'Content-Type' : 'application/json'
+            }
+          })
+          .then(response => response.json())
+          .then(jsonResponse => {
+            console.log(jsonResponse);
           })
         }
       }
@@ -114,9 +171,16 @@
           })
         }
       }
-      document.getElementById('list-cat-form').onsubmit =function(e) {
+
+      const task_list_name = document.getElementById('list-cat-name-id');
+      const element = document.getElementById('list-cat-form');
+      console.log(element);
+      element.onsubmit = function(e) {
         e.preventDefault();
-        const list_name = document.getElementById('list-cat-name').value;
+        console.log('hi');
+        const list_name = task_list_name.value;
+        console.log('hi');
+        task_list_name.value = "";
         fetch('/todos/create-list', {
           method: 'POST',
           body: JSON.stringify({
@@ -125,17 +189,18 @@
           headers:{
             'Content-Type':'application/json'
           }
+          })
           .then(response=>response.json())
           .then(jsonResponse=>{
             const newName = document.createElement('li');
             newName.innerHTML = jsonResponse['name'];
             document.getElementById('lists').appendChild(newName);
             document.getElementById('error').className = 'hidden';
-          })
-          .catch(function(){
+          
+        })
+        .catch(function(){
             document.getElementById('error').className = '';
           })
-        })
       }
 
 

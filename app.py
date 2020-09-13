@@ -17,7 +17,7 @@ class Todo(db.Model):
   list_id = db.Column(db.Integer , db.ForeignKey('todolists.id') , nullable=False)
 
   def __repr__(self):
-    return f'<Todo {self.id} {self.description}>'
+    return f'<Todo {self.id} {self.description} {self.list_id} >'
 
 
 class TodoList(db.Model):
@@ -48,6 +48,26 @@ def delete_task_todo():
   else:
     return jsonify(body)
     
+@app.route('/todos/delete-list' , methods=['POST'])
+def delete_list():
+  error = False
+  body = {}
+  try:
+    todo_list_id = request.get_json()['id']
+    Todo.query.filter_by(list_id=todo_list_id).delete()
+    TodoList.query.filter_by(id=todo_list_id).delete()
+    db.session.commit()
+    body['id'] = todo_list_id
+  except:
+    error = True
+    db.session.rollback()
+    print(sys.exc_info())
+  finally:
+    db.session.close()
+  if error:
+    abort (400)
+  else:
+    return jsonify(body)
 
 
 @app.route('/todos/<todo_id>/set-completed', methods=['POST'])
@@ -69,9 +89,9 @@ def create_todo():
   error = False
   body = {}
   try:
-    print("hi!!!!!!!!!!!!'")
+    #print("hi!!!!!!!!!!!!'")
     data = request.get_json()
-    print(data)
+    #print(data)
     description = data['description']
     list_name = data['name']
     list_id = 0
@@ -112,6 +132,7 @@ def create_list():
   body={}
   try:
     name = request.get_json()['name']
+    print(name)
     todolist = TodoList(name=name)
     db.session.add(todolist)
     db.session.commit()
@@ -125,3 +146,5 @@ def create_list():
   else:
     return jsonify(body)
 
+if __name__ == "__main__": 
+	app.run(debug=True) 
