@@ -6,7 +6,7 @@ from flask_migrate import Migrate
 app = Flask(__name__)
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:InnovativeThinkers@database-2.c7bwl5u5cyjg.ap-south-1.rds.amazonaws.com:5432/todo_app'
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://wcszjzaxkorjjm:d765337bf125426cd0b94916c1fca587539fbfa5ffa72f5b64f62630e4cee561@ec2-54-159-138-67.compute-1.amazonaws.com:5432/d86334ufsa93nh'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://fwwemyxtijolbp:10deb4a5265c436959f63c48a0b42f6c39043f36ed75bae4ac944415c2680a73@ec2-50-17-197-184.compute-1.amazonaws.com:5432/deutf6nk8euomb'
+app.config['SQLALCHEMY_DATABASE_URI'] = uri
 
 db = SQLAlchemy(app)
 migrate = Migrate(app , db)
@@ -28,7 +28,7 @@ class TodoList(db.Model):
   name = db.Column(db.String() , nullable=False)
   todos = db.relationship('Todo' , backref='list' , lazy=True)
 
-# db.create_all()
+db.create_all()
 
 @app.route('/todos/delete-task' , methods=['POST'])
 def delete_task_todo():
