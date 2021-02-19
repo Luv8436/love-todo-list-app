@@ -6,6 +6,8 @@ from flask_migrate import Migrate
 app = Flask(__name__)
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:InnovativeThinkers@database-2.c7bwl5u5cyjg.ap-south-1.rds.amazonaws.com:5432/todo_app'
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://wcszjzaxkorjjm:d765337bf125426cd0b94916c1fca587539fbfa5ffa72f5b64f62630e4cee561@ec2-54-159-138-67.compute-1.amazonaws.com:5432/d86334ufsa93nh'
+file = open('./../uri.txt' , 'r' )
+uri = file.read()
 app.config['SQLALCHEMY_DATABASE_URI'] = uri
 
 db = SQLAlchemy(app)
